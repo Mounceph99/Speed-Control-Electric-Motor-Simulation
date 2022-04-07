@@ -1,8 +1,10 @@
 from flask import Flask, jsonify, request
 from oct2py import octave
 from marshmallow import Schema, fields
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # Enabling custom octave functions
 # https://oct2py.readthedocs.io/en/latest/
@@ -13,7 +15,7 @@ octave.addpath('./Octave')
 class ControlSystemSchema(Schema):
     data = fields.List(fields.List(fields.Float()))
 
-@app.route('/', methods = ['GET'])
+@app.route('/get', methods = ['GET'])
 def getPlotPoints():
     
     # Get parameters to use in control system
@@ -26,9 +28,10 @@ def getPlotPoints():
     kp = args.get("kp", default=1, type=float)
     ki = args.get("ki", default=1, type=float)
     kd = args.get("kd", default=1, type=float)
+    maxTime = args.get("maxTime", default=0.5, type=float)
 
     # Get plot points from octave using the passed parameters
-    x = octave.app(kt, ke,J,b,kp,ki,kd)
+    x = octave.app(kt, ke,J,b,kp,ki,kd, maxTime)
 
     # Serialize the data plot to send as a JSON over HTTP
     # numpy to list: https://numpy.org/doc/stable/reference/generated/numpy.ndarray.tolist.html
